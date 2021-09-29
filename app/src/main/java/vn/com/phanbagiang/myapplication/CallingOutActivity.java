@@ -109,7 +109,7 @@ public class CallingOutActivity extends AppCompatActivity {
 
             @Override
             public void onError(StringeeCall stringeeCall, int i, String s) {
-                Log.d(TAG, "onError: ");
+                Log.d(TAG, "onError: "+s);
             }
 
             @Override

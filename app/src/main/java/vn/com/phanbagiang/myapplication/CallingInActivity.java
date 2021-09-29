@@ -169,7 +169,7 @@ public class CallingInActivity extends AppCompatActivity  {
 
     private void addEvents(){
         binding.btnCancel.setOnClickListener(v ->{
-            stringeeCall.hangup();
+            stringeeCall.reject();
             if (audioManager != null){
                 audioManager.stop();
             }
