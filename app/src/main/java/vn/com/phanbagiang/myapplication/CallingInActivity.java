@@ -146,7 +146,7 @@ public class CallingInActivity extends AppCompatActivity  {
                 Log.d(TAG, "onCallInfo: ");
             }
         });
-        initAudio();
+
         addEvents();
     }
 
@@ -169,7 +169,7 @@ public class CallingInActivity extends AppCompatActivity  {
 
     private void addEvents(){
         binding.btnCancel.setOnClickListener(v ->{
-            stringeeCall.reject();
+            stringeeCall.hangup();
             if (audioManager != null){
                 audioManager.stop();
             }
@@ -177,7 +177,10 @@ public class CallingInActivity extends AppCompatActivity  {
         });
 
         binding.btnAnswer.setOnClickListener(v->{
-            audioManager.setSpeakerphoneOn(isSpeaker);
+            initAudio();
+            if(audioManager!= null){
+                audioManager.setSpeakerphoneOn(isSpeaker);
+            }
             stopRingtone(false);
             stringeeCall.answer();
         });

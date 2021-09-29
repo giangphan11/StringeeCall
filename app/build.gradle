@@ -49,4 +49,7 @@ dependencies {
 
     implementation 'com.stringee.sdk.android:stringee-android-sdk:1.7.2'
     implementation 'com.android.volley:volley:1.2.0'
+
+    implementation "com.airbnb.android:lottie:4.1.0"
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
 }

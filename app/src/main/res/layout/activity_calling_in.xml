@@ -51,7 +51,8 @@
         app:layout_constraintBottom_toTopOf="@+id/guideline3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/tvTime"
@@ -91,5 +92,33 @@
         app:layout_constraintEnd_toStartOf="@+id/btnCancel"
         app:layout_constraintStart_toEndOf="@+id/btnAnswer"
         app:layout_constraintTop_toBottomOf="@+id/tvTime" />
+
+    <FrameLayout
+        android:layout_width="409dp"
+        android:layout_height="302dp"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="1dp"
+        app:layout_constraintBottom_toTopOf="@+id/tvTime"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvUser">
+        <com.airbnb.lottie.LottieAnimationView
+            android:layout_width="240dp"
+            android:layout_gravity="center"
+            app:lottie_fileName="anim/anim2.json"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_enableMergePathsForKitKatAndAbove="true"
+            android:layout_height="240dp"/>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="190dp"
+            android:layout_height="190dp"
+            android:visibility="visible"
+            android:src="@drawable/image"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
