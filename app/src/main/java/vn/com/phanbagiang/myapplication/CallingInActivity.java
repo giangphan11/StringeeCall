@@ -62,6 +62,8 @@ public class CallingInActivity extends AppCompatActivity  {
 
     MediaPlayer mp = null;
 
+    private PowerManager.WakeLock mWakeLock = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +74,8 @@ public class CallingInActivity extends AppCompatActivity  {
 
         //player.set
         activeRingTune();
+        addLockScreenFlags();
+        initProximitySensor();
 
         Window window = getWindow();
         window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
@@ -150,6 +154,14 @@ public class CallingInActivity extends AppCompatActivity  {
         addEvents();
     }
 
+    private void initProximitySensor(){
+        if (mWakeLock == null || !mWakeLock.isHeld()){
+            PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = powerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, "CALL_:wake_lock");
+            mWakeLock.acquire(10 * 60 * 1000L);
+        }
+    }
+
     private void initAudio(){
         // Initialize audio manager to manage the audio routing
         audioManager = StringeeAudioManager.create(this);
@@ -165,6 +177,28 @@ public class CallingInActivity extends AppCompatActivity  {
             public void onSuccess() {
             }
         });
+    }
+
+    private void addLockScreenFlags(){
+        Window w = getWindow();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1){
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
+        else{
+
+            w.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+            w.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+            w.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+            w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            KeyguardManager KeyguardManager = (KeyguardManager) (getSystemService(Context.KEYGUARD_SERVICE));
+            KeyguardManager.requestDismissKeyguard(this, null);
+        }
+        else{
+            w.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        }
     }
 
     private void addEvents(){
@@ -222,6 +256,9 @@ public class CallingInActivity extends AppCompatActivity  {
         if (audioManager != null){
             audioManager.stop();
             audioManager.audioManager.setMode(AudioManager.MODE_NORMAL);
+        }
+        if (mWakeLock.isHeld()){
+            mWakeLock.release();
         }
         //finishAndRemoveTask();
     }

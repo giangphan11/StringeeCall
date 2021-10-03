@@ -1,0 +1,18 @@
+{
+  "callId": "call-vn-1-7NCU36PYNQ-1632954084362",
+  "serial": 1,
+  "callStatus": "started",
+  "from": {
+    "number": "user4",
+    "alias": "user4",
+    "is_online": true,
+    "type": "internal"
+  },
+  "to": {
+    "number": "user3",
+    "alias": "user3",
+    "is_online": true,
+    "type": "internal"
+  },
+  "projectId": 12716
+}

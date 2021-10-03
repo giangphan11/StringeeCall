@@ -10,11 +10,14 @@ import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
+import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
 
 import org.json.JSONObject;
 
 import java.util.HashMap;
+
+import vn.com.phanbagiang.myapplication.firebase.MyFirebaseMessagingService;
 
 /**
  * Created by giangphanba on 9/23/2021.
@@ -44,6 +47,18 @@ public class MyApplication extends Application {
             @Override
             public void onConnectionConnected(StringeeClient stringeeClient, boolean b) {
                 Log.d(TAG, "onConnectionConnected: ");
+                String tokenFirebase = getSharedPreferences(MyFirebaseMessagingService.KEY_SHARE, MODE_PRIVATE).getString(MyFirebaseMessagingService.KEY_TOKEN, "");
+                Log.d(TAG, "onConnectionConnected: TOKEN = "+tokenFirebase);
+                stringeeClient.registerPushToken(tokenFirebase, new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "REGISTER TOKEN FIREBASE SUCCESS");
+                    }
+                    @Override
+                    public void onError(StringeeError stringeeError) {
+                        Log.d(TAG, "registerPushToken ERR: "+stringeeError.message);
+                    }
+                });
             }
 
             @Override
@@ -54,12 +69,14 @@ public class MyApplication extends Application {
             @Override
             public void onIncomingCall(StringeeCall stringeeCall) {
                 try{
-                    MyApplication.callsMap.put(stringeeCall.getCallId(), stringeeCall);
                     Log.d(TAG, "onIncomingCall: ");
-                    Intent intent = new Intent(getApplicationContext(), CallingInActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.putExtra("CALL_ID", stringeeCall.getCallId());
-                    startActivity(intent);
+                    MyApplication.callsMap.put(stringeeCall.getCallId(), stringeeCall);
+                    Log.d(TAG, "onIncomingCall:OK");
+//                    Log.d(TAG, "onIncomingCall: ");
+//                    Intent intent = new Intent(getApplicationContext(), CallingInActivity.class);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    intent.putExtra("CALL_ID", stringeeCall.getCallId());
+//                    startActivity(intent);
                 }
                 catch (Exception ex){
                     Log.d(TAG, "onIncomingCall: "+ex.getMessage());
