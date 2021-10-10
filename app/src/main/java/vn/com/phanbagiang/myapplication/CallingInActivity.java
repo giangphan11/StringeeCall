@@ -1,6 +1,7 @@
 package vn.com.phanbagiang.myapplication;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -8,8 +9,11 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.KeyguardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -23,6 +27,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -45,6 +50,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import vn.com.phanbagiang.myapplication.databinding.ActivityCallingInBinding;
+import vn.com.phanbagiang.myapplication.events.AddActivity;
 
 public class CallingInActivity extends AppCompatActivity  {
     private static final String TAG = "CALL_";
@@ -82,7 +88,7 @@ public class CallingInActivity extends AppCompatActivity  {
 
 
         String userID = getIntent().getStringExtra("CALL_ID");
-        stringeeCall = MyApplication.callsMap.get(userID);
+        stringeeCall = Utils.callsMap.get(userID);
         binding.tvUser.setText(userID);
 
         stringeeCall.setCallListener(new StringeeCall.StringeeCallListener() {
@@ -93,9 +99,36 @@ public class CallingInActivity extends AppCompatActivity  {
                         Log.d(TAG, "onSignalingStateChange: BUSY");
                         break;
                     case ENDED:
-                        Log.d(TAG, "onSignalingStateChange: ENDED");
+                        Log.d(TAG, "onSignalingStateChange: ENDED"+Thread.currentThread().getName());
                         stopRingtone(false);
-                        finish();
+                        runOnUiThread(() -> {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(CallingInActivity.this);
+                            builder.setTitle("Warning");
+                            builder.setMessage("Che do pin dang bat tiet kiem pin, vui long tat no de chay ngam");
+
+                            builder.setPositiveButton("Dong y", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    Intent intent = new Intent(CallingInActivity.this, AddActivity.class);
+                                    startActivityForResult(intent, 12);
+                                }
+                            });
+                            builder.setNegativeButton("Huy", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    setResult(115);
+                                    finish();
+                                }
+                            });
+                            builder.create().show();
+//
+//                            Utils.postDelay(() -> {
+//                                builder.create().show();
+//                            }, 1000L);
+                        });
+
                         break;
                     case CALLING:
                         Log.d(TAG, "onSignalingStateChange: CALLING");
@@ -154,6 +187,15 @@ public class CallingInActivity extends AppCompatActivity  {
         addEvents();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable  Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 12 && resultCode == 11){
+            setResult(115);
+            finish();
+        }
+    }
+
     private void initProximitySensor(){
         if (mWakeLock == null || !mWakeLock.isHeld()){
             PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -207,7 +249,14 @@ public class CallingInActivity extends AppCompatActivity  {
             if (audioManager != null){
                 audioManager.stop();
             }
-            finish();
+            runOnUiThread(() -> {
+                runOnUiThread(() -> {
+                    Utils.postDelay(() -> {
+                        setResult(115);
+                        finish();
+                    }, 1000L);
+                });
+            });
         });
 
         binding.btnAnswer.setOnClickListener(v->{

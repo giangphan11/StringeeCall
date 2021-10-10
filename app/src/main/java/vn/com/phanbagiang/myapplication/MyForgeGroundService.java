@@ -77,7 +77,7 @@ public class MyForgeGroundService extends Service {
             Log.d(TAG, "STARTFOREGROUND_ACTION: ");
             // code here
 
-            MyApplication.stringeeClient.setConnectionListener(new StringeeConnectionListener() {
+            MainActivity.stringeeClient.setConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(StringeeClient stringeeClient, boolean b) {
                     Log.d(TAG, "onConnectionConnected: ");
@@ -97,7 +97,7 @@ public class MyForgeGroundService extends Service {
 //                            Log.d(TAG, "onIncomingCall: reject");
 //                            return;
 //                        }
-                        MyApplication.callsMap.put(stringeeCall.getCallId(), stringeeCall);
+                        Utils.callsMap.put(stringeeCall.getCallId(), stringeeCall);
                         Intent intent = new Intent(getApplicationContext(), CallingInActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         intent.putExtra("CALL_ID", stringeeCall.getCallId());
@@ -132,7 +132,7 @@ public class MyForgeGroundService extends Service {
                     Log.d(TAG, "onTopicMessage: ");
                 }
             });
-            MyApplication.stringeeClient.connect(MyApplication.TOKEN1);
+            MainActivity.stringeeClient.connect(MyApplication.TOKEN1);
 
 
             // tạo activity lúc ấn vào thông báo

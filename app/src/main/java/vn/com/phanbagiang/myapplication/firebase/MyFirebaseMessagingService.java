@@ -1,6 +1,7 @@
 package vn.com.phanbagiang.myapplication.firebase;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,6 +13,7 @@ import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 
 import vn.com.phanbagiang.myapplication.CallingInActivity;
+import vn.com.phanbagiang.myapplication.MainActivity;
 import vn.com.phanbagiang.myapplication.MyApplication;
 
 /**
@@ -28,7 +30,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
         getSharedPreferences(KEY_SHARE, MODE_PRIVATE).edit().putString(KEY_TOKEN, token).apply();
-        MyApplication.stringeeClient.registerPushToken(token, new StatusListener() {
+        MainActivity.stringeeClient.registerPushToken(token, new StatusListener() {
             @Override
             public void onSuccess() {
                 Log.d(TAG, "registerPushToken Success: ");
@@ -51,12 +53,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             if (pushFromStringee != null) { // Receive push notification from Stringee Server
                 // Connect to Stringee Server here
                 Notifi notifi = new GsonBuilder().create().fromJson(pushFromStringee, Notifi.class);
-                Log.d(TAG, "ZZZZZZZZZZZZZZ"+notifi.getCallId());
-                if (notifi.getCallStatus().equals("started")){
-                    Log.d(TAG, "onIncomingCall: ");
-                    Intent intent = new Intent(getApplicationContext(), CallingInActivity.class);
+                if (notifi.getCallStatus().equals("started") && !MyApplication.isActive){
+                    MyApplication.isCalling = true;
+                    MyApplication.isStartFromSplash = false;
+                    Log.d(TAG, "LOAD FROM NOTIFICATION");
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.putExtra("CALL_ID", notifi.getCallId());
+                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                    //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                 }
 

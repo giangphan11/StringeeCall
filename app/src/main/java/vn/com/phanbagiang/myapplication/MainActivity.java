@@ -1,35 +1,37 @@
 package vn.com.phanbagiang.myapplication;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.concurrent.TimeUnit;
+import com.stringee.StringeeClient;
+import com.stringee.call.StringeeCall;
+import com.stringee.call.StringeeCall2;
+import com.stringee.exception.StringeeError;
+import com.stringee.listener.StatusListener;
+import com.stringee.listener.StringeeConnectionListener;
 
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Observer;
+import org.json.JSONObject;
+
+import java.util.List;
+
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
-import io.reactivex.rxjava3.functions.Predicate;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+
 import vn.com.phanbagiang.myapplication.databinding.ActivityMainBinding;
+import vn.com.phanbagiang.myapplication.firebase.MyFirebaseMessagingService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,45 +41,124 @@ public class MainActivity extends AppCompatActivity {
 
     private CompositeDisposable disposable = new CompositeDisposable();
 
-    private int CHECK_BATTERY_OPTIMIZE = 1;
+    public static StringeeClient stringeeClient;
 
+    private int CHECK_BATTERY_OPTIMIZE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        Log.d(TAG, "onCreate: Main");
+        initStringee();
         addEvents();
-        //checkForBatteryOptimizations();
+    }
+
+    int dem;
+
+
+
+    private void initStringee(){
+        stringeeClient = new StringeeClient(this);
+        stringeeClient.setConnectionListener(new StringeeConnectionListener() {
+            @Override
+            public void onConnectionConnected(StringeeClient stringeeClient, boolean b) {
+                Log.d(TAG, "onConnectionConnected: ");
+                String tokenFirebase = getSharedPreferences(MyFirebaseMessagingService.KEY_SHARE, MODE_PRIVATE).getString(MyFirebaseMessagingService.KEY_TOKEN, "");
+                Log.d(TAG, "onConnectionConnected: TOKEN = "+tokenFirebase);
+                stringeeClient.registerPushToken(tokenFirebase, new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "REGISTER TOKEN FIREBASE SUCCESS");
+                    }
+                    @Override
+                    public void onError(StringeeError stringeeError) {
+                        Log.d(TAG, "registerPushToken ERR: "+stringeeError.message);
+                    }
+                });
+            }
+
+            @Override
+            public void onConnectionDisconnected(StringeeClient stringeeClient, boolean b) {
+                Log.d(TAG, "onConnectionDisconnected: ");
+            }
+
+            @Override
+            public void onIncomingCall(StringeeCall stringeeCall) {
+                try{
+                    Log.d(TAG, "onIncomingCall: MAIN");
+                    dem++;
+                    if (dem ==1){
+                        Utils.callsMap.put(stringeeCall.getCallId(), stringeeCall);
+                        Intent intent = new Intent(getApplicationContext(), CallingInActivity.class);
+                        //intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.putExtra("CALL_ID", stringeeCall.getCallId());
+                        startActivityForResult(intent, 123);
+                        Log.d(TAG, "GO TO CALL OUT");
+                    }
+                    Log.d(TAG, "onIncomingCall: DEM ="+dem);
+                }
+                catch (Exception ex){
+                    Log.d(TAG, "onIncomingCall: "+ex.getMessage());
+                }
+            }
+
+            @Override
+            public void onIncomingCall2(StringeeCall2 stringeeCall2) {
+                Log.d(TAG, "onIncomingCall2: ");
+            }
+
+            @Override
+            public void onConnectionError(StringeeClient stringeeClient, StringeeError stringeeError) {
+                Log.d(TAG, "onConnectionError: "+stringeeError.message);
+            }
+
+            @Override
+            public void onRequestNewToken(StringeeClient stringeeClient) {
+                Log.d(TAG, "onRequestNewToken: ");
+            }
+
+            @Override
+            public void onCustomMessage(String s, JSONObject jsonObject) {
+                Log.d(TAG, "onCustomMessage: ");
+            }
+
+            @Override
+            public void onTopicMessage(String s, JSONObject jsonObject) {
+                Log.d(TAG, "onTopicMessage: ");
+            }
+        });
+        stringeeClient.connect(MyApplication.TOKEN3);
     }
 
     private void addEvents() {
         binding.btnShowUserId.setOnClickListener(v -> {
-            if (MyApplication.stringeeClient.isConnected())
-                binding.textView.setText(MyApplication.stringeeClient.getUserId());
+            if (stringeeClient.isConnected())
+                binding.textView.setText(stringeeClient.getUserId());
             else
                 binding.textView.setText("Hok co ket noi!!!");
         });
 
         binding.btnUser1.setOnClickListener(v -> {
-            if (MyApplication.stringeeClient.isConnected()) {
-                MyApplication.stringeeClient.disconnect();
+            if (stringeeClient.isConnected()) {
+                stringeeClient.disconnect();
             }
-            MyApplication.stringeeClient.connect(MyApplication.TOKEN1);
+            stringeeClient.connect(MyApplication.TOKEN1);
             Toast.makeText(this, "switch to User1", Toast.LENGTH_SHORT).show();
         });
 
         binding.btnUser2.setOnClickListener(v -> {
-            if (MyApplication.stringeeClient.isConnected()) {
-                MyApplication.stringeeClient.disconnect();
+            if (stringeeClient.isConnected()) {
+                stringeeClient.disconnect();
             }
-            MyApplication.stringeeClient.connect(MyApplication.TOKEN4);
+            stringeeClient.connect(MyApplication.TOKEN4);
             Toast.makeText(this, "switch to User2", Toast.LENGTH_SHORT).show();
         });
 
         binding.btnCall.setOnClickListener(v -> {
-            if (MyApplication.stringeeClient.isConnected()) {
+            if (stringeeClient.isConnected()) {
                 Intent intent = new Intent(this, CallingOutActivity.class);
                 intent.putExtra("KEY_USER", binding.etUser.getText().toString().trim());
                 startActivity(intent);
@@ -109,6 +190,23 @@ public class MainActivity extends AppCompatActivity {
                 startService(stopIntent);
             }
         });
+        binding.btnCloseApp.setOnClickListener(v->{
+//            Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+//            homeIntent.addCategory( Intent.CATEGORY_HOME );
+//            homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//            startActivity(homeIntent);
+            finishAndRemoveTask();
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == 115 && requestCode == 123) {
+            if (MyApplication.isCalling){
+                finishAndRemoveTask();
+            }
+        }
     }
 
     private void checkForBatteryOptimizations(){
@@ -138,22 +236,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CHECK_BATTERY_OPTIMIZE){
-            //checkForBatteryOptimizations();
-        }
-    }
-
-    @Override
     protected void onStop() {
+        dem = 0;
         super.onStop();
         disposable.clear();
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        dem = 0;
+        Log.d(TAG, "onStart: MAIN");
+        MyApplication.isActive = true;
+    }
+
+    @Override
     protected void onDestroy() {
-        super.onDestroy();
+        MyApplication.isCalling = false;
+        MyApplication.isActive = false;
+        dem = 0;
         Log.d(TAG, "onDestroy: MAIN");
+        super.onDestroy();
     }
 }

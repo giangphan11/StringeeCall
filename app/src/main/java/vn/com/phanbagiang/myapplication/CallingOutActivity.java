@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
 import com.stringee.common.StringeeAudioManager;
 
@@ -45,6 +46,8 @@ public class CallingOutActivity extends AppCompatActivity {
 
     public static final int REQUEST_PERMISSION_CALL = 1;
 
+    private StringeeClient stringeeClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,7 +63,7 @@ public class CallingOutActivity extends AppCompatActivity {
         String userIDCall = getIntent().getStringExtra("KEY_USER");
 
         binding.tvUserName.setText(userIDCall);
-        stringeeCall = new StringeeCall(MyApplication.stringeeClient, MyApplication.stringeeClient.getUserId(), userIDCall);
+        stringeeCall = new StringeeCall(MainActivity.stringeeClient, MainActivity.stringeeClient.getUserId(), userIDCall);
         audioManager = StringeeAudioManager.create(this);
         audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
             @Override
