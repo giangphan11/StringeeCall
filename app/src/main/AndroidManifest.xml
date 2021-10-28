@@ -20,16 +20,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TestRXAndroid">
-        <activity android:name=".events.AddActivity">
+        <activity android:name=".chart.BarChartActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SplashActivity">
-
-        </activity>
+        <activity android:name=".events.AddActivity"/>
+        <activity android:name=".SplashActivity"/>
 
         <service android:name=".firebase.MyFirebaseMessagingService">
             <intent-filter>
